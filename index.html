@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FitPlan">
+<meta name="theme-color" content="#1B4F72">
+<link rel="manifest" href="manifest.json">
+<title>FitPlan - Brett's Programme</title>
+<style>
+:root {
+  --blue: #1B4F72;
+  --blue-light: #D6EAF8;
+  --green: #1E8449;
+  --green-light: #D5F5E3;
+  --orange: #E67E22;
+  --orange-light: #FDEBD0;
+  --red: #E74C3C;
+  --dark: #2C3E50;
+  --grey: #95A5A6;
+  --bg: #F8F9FA;
+  --card: #FFFFFF;
+  --radius: 14px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Helvetica Neue', sans-serif;
+  background: var(--bg);
+  color: var(--dark);
+  min-height: 100vh;
+  padding-bottom: 90px;
+  padding-top: env(safe-area-inset-top);
+}
+.header {
+  background: linear-gradient(135deg, var(--blue), #2E86C1);
+  color: white;
+  padding: 20px 20px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header h1 { font-size: 22px; font-weight: 700; }
+.header .subtitle { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+.streak-bar {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.streak-item {
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.streak-item .num { font-size: 18px; font-weight: 700; }
+
+.tabs {
+  display: flex;
+  background: var(--card);
+  border-bottom: 1px solid #E8E8E8;
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.tab {
+  flex: 1;
+  min-width: 70px;
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--grey);
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.tab-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+
+.container { padding: 16px; max-width: 500px; margin: 0 auto; }
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px;
+  margin-bottom: 14px;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Day selector */
+.day-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.day-nav button {
+  background: var(--blue-light);
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--blue);
+}
+.day-nav .day-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dark);
+  text-align: center;
+}
+.day-nav .day-date { font-size: 12px; color: var(--grey); }
+
+.day-type-badge {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.badge-workout { background: var(--blue-light); color: var(--blue); }
+.badge-cardio { background: var(--green-light); color: var(--green); }
+.badge-rest { background: var(--orange-light); color: var(--orange); }
+
+/* Exercise items */
+.exercise-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #F0F0F0;
+}
+.exercise-item:last-child { border-bottom: none; }
+.exercise-check {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #DDD;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  transition: all 0.2s;
+}
+.exercise-check.checked {
+  background: var(--green);
+  border-color: var(--green);
+  color: white;
+}
+.exercise-check.checked::after { content: "\2713"; font-size: 14px; font-weight: 700; }
+.exercise-info { flex: 1; }
+.exercise-name { font-size: 14px; font-weight: 600; color: var(--dark); }
+.exercise-detail { font-size: 12px; color: var(--grey); margin-top: 2px; }
+.exercise-name.done { text-decoration: line-through; color: var(--grey); }
+.exercise-notes {
+  font-size: 11px;
+  color: var(--blue);
+  background: var(--blue-light);
+  padding: 4px 8px;
+  border-radius: 6px;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+/* Progress ring */
+.progress-ring-container {
+  text-align: center;
+  margin: 10px 0;
+}
+.progress-ring { transform: rotate(-90deg); }
+.progress-text {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--blue);
+}
+.progress-label { font-size: 12px; color: var(--grey); }
+
+/* Weekly grid */
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+.week-day {
+  text-align: center;
+  padding: 8px 2px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.week-day .wd-name { font-size: 11px; font-weight: 600; color: var(--grey); }
+.week-day .wd-num { font-size: 16px; font-weight: 700; margin: 4px 0; }
+.week-day .wd-dot { width: 6px; height: 6px; border-radius: 50%; margin: 0 auto; }
+.week-day.today { background: var(--blue-light); }
+.week-day.today .wd-name, .week-day.today .wd-num { color: var(--blue); }
+.week-day.completed .wd-dot { background: var(--green); }
+.week-day.partial .wd-dot { background: var(--orange); }
+.week-day.missed .wd-dot { background: var(--red); }
+
+/* Weight tracker */
+.weight-input-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.weight-input-row input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 2px solid #E8E8E8;
+  border-radius: 10px;
+  font-size: 16px;
+  font-family: inherit;
+  -webkit-appearance: none;
+}
+.weight-input-row input:focus { border-color: var(--blue); outline: none; }
+.weight-input-row button {
+  padding: 10px 20px;
+  background: var(--green);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.weight-chart {
+  width: 100%;
+  height: 180px;
+  position: relative;
+  margin-top: 10px;
+}
+.weight-chart canvas { width: 100%; height: 100%; }
+.weight-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.weight-stat {
+  text-align: center;
+  padding: 10px;
+  background: var(--bg);
+  border-radius: 10px;
+}
+.weight-stat .ws-val { font-size: 20px; font-weight: 700; color: var(--blue); }
+.weight-stat .ws-label { font-size: 11px; color: var(--grey); margin-top: 2px; }
+
+/* Nutrition */
+.nutrition-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #F0F0F0;
+}
+.nutrition-row:last-child { border-bottom: none; }
+.nutr-label { font-size: 14px; font-weight: 600; }
+.nutr-target { font-size: 12px; color: var(--grey); }
+.nutr-toggle {
+  width: 50px;
+  height: 28px;
+  border-radius: 14px;
+  border: none;
+  background: #DDD;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.nutr-toggle.on { background: var(--green); }
+.nutr-toggle::after {
+  content: '';
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.nutr-toggle.on::after { transform: translateX(22px); }
+
+/* Stats */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stat-card {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+.stat-card .sc-icon { font-size: 24px; margin-bottom: 4px; }
+.stat-card .sc-val { font-size: 22px; font-weight: 700; color: var(--blue); }
+.stat-card .sc-label { font-size: 11px; color: var(--grey); margin-top: 2px; }
+
+/* Weight history list */
+.weight-history { margin-top: 14px; }
+.weight-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #F0F0F0;
+  font-size: 13px;
+}
+.weight-entry:last-child { border-bottom: none; }
+.weight-entry .we-date { color: var(--grey); }
+.weight-entry .we-val { font-weight: 600; }
+.weight-entry .we-del {
+  background: none;
+  border: none;
+  color: var(--red);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.section { display: none; }
+.section.active { display: block; }
+
+/* Bottom nav */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border-top: 1px solid #E8E8E8;
+  display: flex;
+  padding: 6px 0;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  z-index: 100;
+}
+.nav-item {
+  flex: 1;
+  text-align: center;
+  padding: 6px;
+  font-size: 10px;
+  color: var(--grey);
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+.nav-item.active { color: var(--blue); }
+.nav-item .nav-icon { font-size: 22px; display: block; }
+
+/* Complete day button */
+.complete-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: all 0.2s;
+}
+.complete-btn.ready { background: var(--green); color: white; }
+.complete-btn.partial { background: var(--orange-light); color: var(--orange); }
+.complete-btn.done { background: var(--green-light); color: var(--green); }
+
+/* Meal plan */
+.meal-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #F0F0F0;
+}
+.meal-item:last-child { border-bottom: none; }
+.meal-time { font-size: 12px; font-weight: 600; color: var(--green); text-transform: uppercase; }
+.meal-desc { font-size: 14px; margin-top: 2px; }
+.meal-example { font-size: 12px; color: var(--grey); margin-top: 2px; font-style: italic; }
+
+/* Animations */
+@keyframes checkPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+.check-pop { animation: checkPop 0.3s ease; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>FitPlan</h1>
+  <div class="subtitle">Brett's Programme</div>
+  <div class="streak-bar">
+    <div class="streak-item"><span class="num" id="streakCount">0</span> day streak</div>
+    <div class="streak-item"><span class="num" id="currentWeight">80.0</span> kg</div>
+    <div class="streak-item"><span class="num" id="toGoal">5.0</span> kg to go</div>
+  </div>
+</div>
+
+<!-- TODAY TAB -->
+<div class="section active" id="sec-today">
+  <div class="container">
+    <div class="day-nav">
+      <button onclick="changeDay(-1)">&larr;</button>
+      <div>
+        <div class="day-label" id="dayLabel">Monday</div>
+        <div class="day-date" id="dayDate">9 Mar 2026</div>
+      </div>
+      <button onclick="changeDay(1)">&rarr;</button>
+    </div>
+    <div id="dayContent"></div>
+  </div>
+</div>
+
+<!-- WEEK TAB -->
+<div class="section" id="sec-week">
+  <div class="container">
+    <div class="card">
+      <div class="card-title">This Week</div>
+      <div class="week-grid" id="weekGrid"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Weekly Stats</div>
+      <div class="stat-grid" id="weekStats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WEIGHT TAB -->
+<div class="section" id="sec-weight">
+  <div class="container">
+    <div class="card">
+      <div class="card-title">Log Weight</div>
+      <div class="weight-input-row">
+        <input type="number" id="weightInput" placeholder="e.g. 79.5" step="0.1" min="40" max="200">
+        <button onclick="logWeight()">Log</button>
+      </div>
+      <div class="weight-stats" id="weightStats"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Weight Trend</div>
+      <div class="weight-chart"><canvas id="weightCanvas"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">History</div>
+      <div class="weight-history" id="weightHistory"></div>
+    </div>
+  </div>
+</div>
+
+<!-- NUTRITION TAB -->
+<div class="section" id="sec-nutrition">
+  <div class="container">
+    <div class="card">
+      <div class="card-title">Today's Targets</div>
+      <div id="nutritionToggles"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Meal Plan</div>
+      <div id="mealPlan"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Supplements</div>
+      <div id="supplementList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS TAB -->
+<div class="section" id="sec-stats">
+  <div class="container">
+    <div class="card">
+      <div class="card-title">Overall Progress</div>
+      <div class="stat-grid" id="overallStats"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Programme Info</div>
+      <div style="font-size:13px; color: var(--grey); line-height: 1.6;">
+        <p><strong>Goal:</strong> 75kg lean with visible abs</p>
+        <p style="margin-top:6px"><strong>Schedule:</strong> 3 training days (Mon/Wed/Fri), walking, swimming</p>
+        <p style="margin-top:6px"><strong>Calories:</strong> 1,800-2,000/day</p>
+        <p style="margin-top:6px"><strong>Protein:</strong> 140-160g/day</p>
+        <p style="margin-top:6px"><strong>Steps:</strong> 8,000-10,000 daily</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-item active" onclick="switchTab('today')"><span class="nav-icon">&#x1F3CB;</span>Today</button>
+  <button class="nav-item" onclick="switchTab('week')"><span class="nav-icon">&#x1F4C5;</span>Week</button>
+  <button class="nav-item" onclick="switchTab('weight')"><span class="nav-icon">&#x2696;</span>Weight</button>
+  <button class="nav-item" onclick="switchTab('nutrition')"><span class="nav-icon">&#x1F957;</span>Nutrition</button>
+  <button class="nav-item" onclick="switchTab('stats')"><span class="nav-icon">&#x1F4CA;</span>Stats</button>
+</div>
+
+<script>
+// ===== PROGRAMME DATA =====
+const PROGRAMME = {
+  0: { // Monday
+    name: "Workout A: Pull + Core",
+    type: "workout",
+    badge: "badge-workout",
+    exercises: [
+      { name: "Chinups (weighted or varied grip)", sets: "4 x 8-12", rest: "90 sec", notes: "Add weight when 12 feels easy" },
+      { name: "Inverted Rows (feet elevated)", sets: "3 x 12-15", rest: "60 sec", notes: "Bodyweight or TRX" },
+      { name: "Dumbbell Single-Arm Row", sets: "3 x 10 each", rest: "60 sec", notes: "Squeeze at the top" },
+      { name: "Face Pulls (band or cable)", sets: "3 x 15", rest: "45 sec", notes: "Shoulder health" },
+      { name: "Hanging Leg Raises", sets: "3 x 10-15", rest: "60 sec", notes: "Slow and controlled" },
+      { name: "Ab Wheel Rollouts", sets: "3 x 8-12", rest: "60 sec", notes: "From knees, progress to standing" },
+      { name: "Dead Hang", sets: "2 x 30-60 sec", rest: "30 sec", notes: "Grip and decompression" },
+    ]
+  },
+  1: { // Tuesday
+    name: "Walk or Swim",
+    type: "cardio",
+    badge: "badge-cardio",
+    exercises: [
+      { name: "Walk (45-60 min) or Swim (20-30 min)", sets: "1 session", rest: "-", notes: "Active recovery day" },
+      { name: "Light stretching / mobility", sets: "10 min", rest: "-", notes: "Focus on hips, shoulders, thoracic spine" },
+    ]
+  },
+  2: { // Wednesday
+    name: "Workout B: Push + Legs",
+    type: "workout",
+    badge: "badge-workout",
+    exercises: [
+      { name: "Barbell or Goblet Squat", sets: "4 x 8-12", rest: "90 sec", notes: "Full depth, controlled" },
+      { name: "Push-up Variations", sets: "3 x 15-20", rest: "60 sec", notes: "Diamond, archer, or decline" },
+      { name: "Dumbbell Overhead Press", sets: "3 x 10-12", rest: "60 sec", notes: "Standing preferred" },
+      { name: "Romanian Deadlift", sets: "3 x 10-12", rest: "90 sec", notes: "Hamstrings and glutes" },
+      { name: "Dips (bodyweight or weighted)", sets: "3 x 8-12", rest: "60 sec", notes: "Chest focus: lean forward" },
+      { name: "Walking Lunges", sets: "2 x 12 each leg", rest: "60 sec", notes: "Hold dumbbells for load" },
+      { name: "Plank Hold", sets: "2 x 45-60 sec", rest: "30 sec", notes: "Squeeze everything tight" },
+    ]
+  },
+  3: { // Thursday
+    name: "Rest or Light Walk",
+    type: "rest",
+    badge: "badge-rest",
+    exercises: [
+      { name: "Light walk (30 min)", sets: "Optional", rest: "-", notes: "Recovery day - listen to your body" },
+      { name: "Stretching / foam rolling", sets: "10-15 min", rest: "-", notes: "Focus on sore areas" },
+    ]
+  },
+  4: { // Friday
+    name: "Workout C: Full Body + Core",
+    type: "workout",
+    badge: "badge-workout",
+    exercises: [
+      { name: "Deadlift or Trap Bar Deadlift", sets: "4 x 6-8", rest: "2 min", notes: "Heavy, focus on form" },
+      { name: "Chinup Superset w/ Push-ups", sets: "3 x max", rest: "90 sec", notes: "Back to back, no rest between" },
+      { name: "Bulgarian Split Squat", sets: "3 x 10 each", rest: "60 sec", notes: "Rear foot on bench" },
+      { name: "Cable or Band Woodchops", sets: "3 x 12 each side", rest: "45 sec", notes: "Rotational core strength" },
+      { name: "Farmers Carry", sets: "3 x 40m", rest: "60 sec", notes: "Heavy as possible" },
+      { name: "Hollow Body Hold", sets: "3 x 30-45 sec", rest: "30 sec", notes: "Key six-pack builder" },
+    ]
+  },
+  5: { // Saturday
+    name: "Long Walk or Swim",
+    type: "cardio",
+    badge: "badge-cardio",
+    exercises: [
+      { name: "Long walk (60-120 min) or Swim (30+ min)", sets: "1 session", rest: "-", notes: "Endurance and fat burning" },
+      { name: "Stretching / mobility work", sets: "10-15 min", rest: "-", notes: "Wind down, focus on recovery" },
+    ]
+  },
+  6: { // Sunday
+    name: "Full Rest Day",
+    type: "rest",
+    badge: "badge-rest",
+    exercises: [
+      { name: "Complete rest", sets: "-", rest: "-", notes: "Recovery is when you grow stronger" },
+      { name: "Light stretching if needed", sets: "5-10 min", rest: "-", notes: "Optional, gentle movements only" },
+    ]
+  }
+};
+
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+const MEALS = [
+  { time: "Morning", desc: "Green smoothie + protein", example: "Spinach, banana, protein powder, flaxseed, water" },
+  { time: "Lunch", desc: "Protein + veg + complex carbs", example: "Grilled chicken, roasted veg, sweet potato or rice" },
+  { time: "Snack", desc: "Protein-rich, low calorie", example: "Greek yoghurt with berries, or handful of nuts" },
+  { time: "Dinner", desc: "Protein + veg + healthy fats", example: "Salmon, large salad, avocado, olive oil" },
+  { time: "Post-Workout", desc: "Quick protein if training fasted", example: "Protein shake or eggs on toast" },
+];
+
+const SUPPLEMENTS = [
+  { name: "Fish Oil", dose: "Daily", notes: "Joint health and inflammation" },
+  { name: "Vitamin D", dose: "2,000-4,000 IU", notes: "Recovery and immune support" },
+  { name: "Magnesium", dose: "400mg", notes: "Sleep quality and recovery" },
+  { name: "Zinc", dose: "15-30mg", notes: "Testosterone support" },
+  { name: "Creatine", dose: "3-5g", notes: "Strength and muscle retention" },
+  { name: "Protein Powder", dose: "25-30g in smoothie", notes: "Hit daily protein target" },
+];
+
+const NUTRITION_TARGETS = [
+  { label: "Calories", target: "1,800-2,000" },
+  { label: "Protein", target: "140-160g" },
+  { label: "Water", target: "2.5-3L" },
+  { label: "Steps", target: "8,000-10,000" },
+];
+
+// ===== STATE =====
+let currentDate = new Date();
+let currentTab = 'today';
+
+function dateKey(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function load(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch(e) { return fallback; }
+}
+function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+// ===== TAB SWITCHING =====
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + tab).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.nav-item')[['today','week','weight','nutrition','stats'].indexOf(tab)].classList.add('active');
+  if (tab === 'week') renderWeek();
+  if (tab === 'weight') renderWeight();
+  if (tab === 'nutrition') renderNutrition();
+  if (tab === 'stats') renderStats();
+}
+
+// ===== TODAY VIEW =====
+function changeDay(delta) {
+  currentDate = new Date(currentDate.getTime() + delta * 86400000);
+  renderToday();
+}
+
+function renderToday() {
+  const dow = (currentDate.getDay() + 6) % 7; // Mon=0
+  const prog = PROGRAMME[dow];
+  const dk = dateKey(currentDate);
+  const checked = load('checks_' + dk, {});
+
+  document.getElementById('dayLabel').textContent = DAYS[dow];
+  document.getElementById('dayDate').textContent = currentDate.getDate() + ' ' + MONTHS[currentDate.getMonth()] + ' ' + currentDate.getFullYear();
+
+  const isToday = dateKey(new Date()) === dk;
+  let html = `<div class="day-type-badge ${prog.badge}">${prog.name}</div>`;
+
+  prog.exercises.forEach((ex, i) => {
+    const done = checked[i] === true;
+    html += `
+      <div class="exercise-item">
+        <div class="exercise-check ${done ? 'checked' : ''}" onclick="toggleExercise('${dk}', ${i}, this)" id="check-${i}"></div>
+        <div class="exercise-info">
+          <div class="exercise-name ${done ? 'done' : ''}" id="ename-${i}">${ex.name}</div>
+          <div class="exercise-detail">${ex.sets} &middot; Rest: ${ex.rest}</div>
+          ${ex.notes ? `<div class="exercise-notes">${ex.notes}</div>` : ''}
+        </div>
+      </div>`;
+  });
+
+  const total = prog.exercises.length;
+  const doneCount = Object.values(checked).filter(v => v).length;
+  const pct = Math.round((doneCount / total) * 100);
+
+  if (doneCount === total) {
+    html += `<button class="complete-btn done">All done! Great work!</button>`;
+  } else if (doneCount > 0) {
+    html += `<button class="complete-btn partial">${doneCount}/${total} completed (${pct}%)</button>`;
+  } else {
+    html += `<button class="complete-btn partial" style="background:#F0F0F0; color:var(--grey)">0/${total} - Let's go!</button>`;
+  }
+
+  document.getElementById('dayContent').innerHTML = html;
+  updateHeader();
+}
+
+function toggleExercise(dk, idx, el) {
+  const checked = load('checks_' + dk, {});
+  checked[idx] = !checked[idx];
+  save('checks_' + dk, checked);
+
+  el.classList.toggle('checked');
+  if (checked[idx]) el.classList.add('check-pop');
+  document.getElementById('ename-' + idx).classList.toggle('done');
+
+  // Re-render button
+  const dow = (currentDate.getDay() + 6) % 7;
+  const total = PROGRAMME[dow].exercises.length;
+  const doneCount = Object.values(checked).filter(v => v).length;
+  renderToday();
+  updateHeader();
+}
+
+// ===== WEEK VIEW =====
+function renderWeek() {
+  const today = new Date();
+  const todayDow = (today.getDay() + 6) % 7;
+  const mondayOfWeek = new Date(today.getTime() - todayDow * 86400000);
+
+  let html = '';
+  let weekCompleted = 0;
+  let weekTotal = 0;
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(mondayOfWeek.getTime() + i * 86400000);
+    const dk = dateKey(d);
+    const isToday = dateKey(today) === dk;
+    const checked = load('checks_' + dk, {});
+    const prog = PROGRAMME[i];
+    const total = prog.exercises.length;
+    const done = Object.values(checked).filter(v => v).length;
+    weekTotal += total;
+    weekCompleted += done;
+
+    let status = '';
+    if (done === total && total > 0) status = 'completed';
+    else if (done > 0) status = 'partial';
+    else if (d < today && !isToday) status = 'missed';
+
+    html += `
+      <div class="week-day ${isToday ? 'today' : ''} ${status}" onclick="currentDate=new Date(${d.getTime()});switchTab('today');renderToday()">
+        <div class="wd-name">${DAYS[i].slice(0,3)}</div>
+        <div class="wd-num">${d.getDate()}</div>
+        <div class="wd-dot"></div>
+      </div>`;
+  }
+
+  document.getElementById('weekGrid').innerHTML = html;
+
+  const pct = weekTotal > 0 ? Math.round((weekCompleted / weekTotal) * 100) : 0;
+  document.getElementById('weekStats').innerHTML = `
+    <div class="stat-card"><div class="sc-val">${pct}%</div><div class="sc-label">Weekly completion</div></div>
+    <div class="stat-card"><div class="sc-val">${weekCompleted}/${weekTotal}</div><div class="sc-label">Exercises done</div></div>
+  `;
+}
+
+// ===== WEIGHT TRACKER =====
+function logWeight() {
+  const input = document.getElementById('weightInput');
+  const val = parseFloat(input.value);
+  if (isNaN(val) || val < 40 || val > 200) return;
+
+  const weights = load('weights', []);
+  weights.push({ date: dateKey(new Date()), weight: val, ts: Date.now() });
+  save('weights', weights);
+  input.value = '';
+  renderWeight();
+  updateHeader();
+}
+
+function deleteWeight(idx) {
+  const weights = load('weights', []);
+  weights.splice(idx, 1);
+  save('weights', weights);
+  renderWeight();
+  updateHeader();
+}
+
+function renderWeight() {
+  const weights = load('weights', []);
+
+  // Stats
+  const latest = weights.length > 0 ? weights[weights.length - 1].weight : 80;
+  const start = weights.length > 0 ? weights[0].weight : 80;
+  const toGoal = Math.max(0, latest - 75).toFixed(1);
+
+  document.getElementById('weightStats').innerHTML = `
+    <div class="weight-stat"><div class="ws-val">${latest}</div><div class="ws-label">Current</div></div>
+    <div class="weight-stat"><div class="ws-val">${(start - latest).toFixed(1)}</div><div class="ws-label">Lost</div></div>
+    <div class="weight-stat"><div class="ws-val">${toGoal}</div><div class="ws-label">To goal</div></div>
+  `;
+
+  // Chart
+  drawWeightChart(weights);
+
+  // History
+  let histHtml = '';
+  const recent = weights.slice().reverse().slice(0, 20);
+  if (recent.length === 0) {
+    histHtml = '<div style="text-align:center; color:var(--grey); padding:20px; font-size:13px">No entries yet. Log your first weight above.</div>';
+  }
+  recent.forEach((w, i) => {
+    const actualIdx = weights.length - 1 - i;
+    histHtml += `
+      <div class="weight-entry">
+        <span class="we-date">${w.date}</span>
+        <span class="we-val">${w.weight} kg</span>
+        <button class="we-del" onclick="deleteWeight(${actualIdx})">&#x2715;</button>
+      </div>`;
+  });
+  document.getElementById('weightHistory').innerHTML = histHtml;
+}
+
+function drawWeightChart(weights) {
+  const canvas = document.getElementById('weightCanvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.scale(dpr, dpr);
+
+  const W = rect.width;
+  const H = rect.height;
+  const pad = { top: 20, right: 20, bottom: 30, left: 40 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+
+  if (weights.length < 2) {
+    ctx.fillStyle = '#95A5A6';
+    ctx.font = '13px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Log at least 2 entries to see trend', W/2, H/2);
+    return;
+  }
+
+  const vals = weights.map(w => w.weight);
+  const minV = Math.min(...vals, 75) - 1;
+  const maxV = Math.max(...vals) + 1;
+  const range = maxV - minV;
+
+  // Goal line
+  const goalY = pad.top + ch - ((75 - minV) / range) * ch;
+  ctx.strokeStyle = '#E74C3C44';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.moveTo(pad.left, goalY);
+  ctx.lineTo(W - pad.right, goalY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#E74C3C';
+  ctx.font = '10px -apple-system, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('75kg goal', pad.left + 4, goalY - 4);
+
+  // Y axis labels
+  ctx.fillStyle = '#95A5A6';
+  ctx.font = '10px -apple-system, sans-serif';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const v = minV + (range * i / 4);
+    const y = pad.top + ch - (i / 4) * ch;
+    ctx.fillText(v.toFixed(1), pad.left - 6, y + 3);
+  }
+
+  // Line
+  ctx.beginPath();
+  ctx.strokeStyle = '#1B4F72';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  vals.forEach((v, i) => {
+    const x = pad.left + (i / (vals.length - 1)) * cw;
+    const y = pad.top + ch - ((v - minV) / range) * ch;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Dots
+  vals.forEach((v, i) => {
+    const x = pad.left + (i / (vals.length - 1)) * cw;
+    const y = pad.top + ch - ((v - minV) / range) * ch;
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#1B4F72';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, y, 2, 0, Math.PI * 2);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+  });
+}
+
+// ===== NUTRITION =====
+function renderNutrition() {
+  const dk = dateKey(new Date());
+  const nutrState = load('nutr_' + dk, {});
+
+  let html = '';
+  NUTRITION_TARGETS.forEach((t, i) => {
+    const on = nutrState[i] === true;
+    html += `
+      <div class="nutrition-row">
+        <div>
+          <div class="nutr-label">${t.label}</div>
+          <div class="nutr-target">${t.target}</div>
+        </div>
+        <button class="nutr-toggle ${on ? 'on' : ''}" onclick="toggleNutrition(${i}, this)"></button>
+      </div>`;
+  });
+  document.getElementById('nutritionToggles').innerHTML = html;
+
+  // Meals
+  let mealHtml = '';
+  MEALS.forEach(m => {
+    mealHtml += `
+      <div class="meal-item">
+        <div class="meal-time">${m.time}</div>
+        <div class="meal-desc">${m.desc}</div>
+        <div class="meal-example">${m.example}</div>
+      </div>`;
+  });
+  document.getElementById('mealPlan').innerHTML = mealHtml;
+
+  // Supplements
+  const suppState = load('supp_' + dk, {});
+  let suppHtml = '';
+  SUPPLEMENTS.forEach((s, i) => {
+    const taken = suppState[i] === true;
+    suppHtml += `
+      <div class="exercise-item">
+        <div class="exercise-check ${taken ? 'checked' : ''}" onclick="toggleSupplement(${i}, this)"></div>
+        <div class="exercise-info">
+          <div class="exercise-name ${taken ? 'done' : ''}" id="sname-${i}">${s.name}</div>
+          <div class="exercise-detail">${s.dose}</div>
+          <div class="exercise-notes">${s.notes}</div>
+        </div>
+      </div>`;
+  });
+  document.getElementById('supplementList').innerHTML = suppHtml;
+}
+
+function toggleNutrition(idx, el) {
+  const dk = dateKey(new Date());
+  const state = load('nutr_' + dk, {});
+  state[idx] = !state[idx];
+  save('nutr_' + dk, state);
+  el.classList.toggle('on');
+}
+
+function toggleSupplement(idx, el) {
+  const dk = dateKey(new Date());
+  const state = load('supp_' + dk, {});
+  state[idx] = !state[idx];
+  save('supp_' + dk, state);
+  el.classList.toggle('checked');
+  if (state[idx]) el.classList.add('check-pop');
+  document.getElementById('sname-' + idx).classList.toggle('done');
+}
+
+// ===== STATS =====
+function renderStats() {
+  const startDate = load('startDate', dateKey(new Date()));
+  if (!load('startDate', null)) save('startDate', dateKey(new Date()));
+
+  const today = new Date();
+  const start = new Date(startDate);
+  const daysDiff = Math.max(1, Math.floor((today - start) / 86400000) + 1);
+  const weeksDiff = Math.max(1, Math.ceil(daysDiff / 7));
+
+  let totalExercises = 0;
+  let totalDone = 0;
+  let completeDays = 0;
+
+  for (let i = 0; i < daysDiff && i < 365; i++) {
+    const d = new Date(start.getTime() + i * 86400000);
+    const dk2 = dateKey(d);
+    const dow = (d.getDay() + 6) % 7;
+    const prog = PROGRAMME[dow];
+    const checked = load('checks_' + dk2, {});
+    const total = prog.exercises.length;
+    const done = Object.values(checked).filter(v => v).length;
+    totalExercises += total;
+    totalDone += done;
+    if (done === total) completeDays++;
+  }
+
+  const completionRate = totalExercises > 0 ? Math.round((totalDone / totalExercises) * 100) : 0;
+  const streak = calcStreak();
+  const weights = load('weights', []);
+  const weightLost = weights.length > 1 ? (weights[0].weight - weights[weights.length-1].weight).toFixed(1) : '0.0';
+
+  document.getElementById('overallStats').innerHTML = `
+    <div class="stat-card"><div class="sc-icon">&#x1F525;</div><div class="sc-val">${streak}</div><div class="sc-label">Current streak</div></div>
+    <div class="stat-card"><div class="sc-icon">&#x1F4AA;</div><div class="sc-val">${totalDone}</div><div class="sc-label">Exercises completed</div></div>
+    <div class="stat-card"><div class="sc-icon">&#x2705;</div><div class="sc-val">${completeDays}</div><div class="sc-label">Perfect days</div></div>
+    <div class="stat-card"><div class="sc-icon">&#x1F4C8;</div><div class="sc-val">${completionRate}%</div><div class="sc-label">Completion rate</div></div>
+    <div class="stat-card"><div class="sc-icon">&#x1F4C5;</div><div class="sc-val">${weeksDiff}</div><div class="sc-label">Weeks in</div></div>
+    <div class="stat-card"><div class="sc-icon">&#x2696;</div><div class="sc-val">${weightLost}</div><div class="sc-label">kg lost</div></div>
+  `;
+}
+
+function calcStreak() {
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today.getTime() - i * 86400000);
+    const dk2 = dateKey(d);
+    const dow = (d.getDay() + 6) % 7;
+    const prog = PROGRAMME[dow];
+    const checked = load('checks_' + dk2, {});
+    const total = prog.exercises.length;
+    const done = Object.values(checked).filter(v => v).length;
+    if (done === total && total > 0) streak++;
+    else if (i > 0) break; // Allow today to be incomplete
+    else continue;
+  }
+  return streak;
+}
+
+function updateHeader() {
+  const streak = calcStreak();
+  document.getElementById('streakCount').textContent = streak;
+
+  const weights = load('weights', []);
+  const latest = weights.length > 0 ? weights[weights.length - 1].weight : 80;
+  document.getElementById('currentWeight').textContent = latest.toFixed(1);
+  document.getElementById('toGoal').textContent = Math.max(0, latest - 75).toFixed(1);
+}
+
+// ===== INIT =====
+renderToday();
+updateHeader();
+
+// Service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
