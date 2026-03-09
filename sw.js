@@ -1,5 +1,5 @@
-const CACHE_NAME = 'fitplan-v1';
-const ASSETS = ['/', '/index.html'];
+const CACHE_NAME = 'fitplan-v2';
+const ASSETS = ['/fitness-app/', '/fitness-app/index.html'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
@@ -21,6 +21,6 @@ self.addEventListener('fetch', e => {
       const clone = resp.clone();
       caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
       return resp;
-    })).catch(() => caches.match('/index.html'))
+    })).catch(() => caches.match('/fitness-app/index.html'))
   );
 });
